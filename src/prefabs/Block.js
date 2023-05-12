@@ -1,13 +1,10 @@
 // Player prefab
-class Player extends Phaser.GameObjects.Sprite {
-    constructor(scene, x, y, texture, color, frame) {
-        super(scene, x, y, texture, frame);
+class Block extends Phaser.GameObjects.Rectangle {
+    constructor(scene, x, y, width, height, fillColor) {
+        super(scene, x, y, width, height, fillColor);
         // add object to existing scene
         scene.add.existing(this);
-        this.create();
-    }
-    create() {
-        
+        console.log(this);
     }
     update() {
         if(this.x < 0 - this.width) {

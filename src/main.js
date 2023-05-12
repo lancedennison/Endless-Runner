@@ -2,6 +2,7 @@ let config = {
     type: Phaser.CANVAS,
     width: 1280,
     height: 720,
+    backgroundColor: '#CECECE',
     pixelArt: true,
     // Sets game scaling
     scale: {
@@ -27,7 +28,7 @@ let game = new Phaser.Game(config);
 let borderUISize = game.config.height / 15;
 let borderPadding = borderUISize / 3;
 // reserve keyboard vars
-let keyUP, keyDown, keyLEFT, keyRIGHT, keyQ, keyW, keyE, keyR, keyA, keyS, keyD, keyF;
+let keyESC, keyUP, keyDOWN, keyLEFT, keyRIGHT, keyQ, keyW, keyE, keyR, keyA, keyS, keyD, keyF;
 // set text configs
 let menuConfig = {
     fontFamily: 'CustomFont',
@@ -76,3 +77,28 @@ let timerConfig = {
     align: 'right',
     fixedWidth: 0
 }
+let letterConfig = {
+    fontFamily: 'CustomFont',
+    fontSize: '28px',
+    color: '#000000',
+    align: 'center',
+    fixedWidth: 40,
+    fixedHeight: 40
+}
+//for menu letters
+let QWER = {
+    x: game.config.width / 2 - 75,
+    y: game.config.height/2 + 20
+}
+let ASDF = {
+    x: game.config.width / 2 - 50,
+    y: game.config.height/2 + 65
+}
+let space = 45;
+//define color hexes
+let redHex = '#FF422E';
+let greenHex = '#6A9A3B';
+let blueHex = '#4B66BB';
+let yellowHex = '#FFE028';
+let lightHex = '#CECECE';
+let darkHex = '#3F3F3F';
