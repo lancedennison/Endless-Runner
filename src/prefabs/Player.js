@@ -15,6 +15,7 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         this.body.setDrag(500);
         this.body.setVelocity(0);
         this.body.setCollideWorldBounds(true, 0.5, 0.5);
+        this.setDepth(5);
     }
     update() {
         if(keyUP.isDown)
@@ -51,6 +52,10 @@ class Player extends Phaser.Physics.Arcade.Sprite {
         else if(c == yellowHex)
         {
             this.setTexture('yellowSprite');
+        }
+        else if(c == darkHex)
+        {
+            this.setTexture('playerSprite');
         }
     }
 }

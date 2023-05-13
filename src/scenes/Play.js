@@ -1,8 +1,18 @@
 class Play extends Phaser.Scene {
     constructor() {
         super("playScene");
+        this.gameOver = false;
+        this.blockER = {
+            blockNumber: 0,
+            spawnDelay: 5000,
+            timeGate: 0,
+            lastSpawn: 0
+        }
+        this.validRange = {
+            min: 200,
+            max: (game.config.height - 200)
+        }
         this.score = 0;
-        this.color = lightHex;
     }
     preload() {
         // load images/tile sprites
@@ -11,15 +21,43 @@ class Play extends Phaser.Scene {
         this.load.image('greenSprite', './assets/player/playerNOTgreen.png');
         this.load.image('blueSprite', './assets/player/playerNOTblue.png');
         this.load.image('yellowSprite', './assets/player/playerNOTyellow.png');
+        this.load.image('looping', './assets/rows.png');
         // load spritesheet
         //this.load.spritesheet('', './assets/.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
     }
     create() {
-        // place tile sprite
-        //this. = this.add.tileSprite(0, 0, game.config.width, game.config.height, '').setOrigin(0, 0);
-        //this. = this.add.image(650, 700, '');
-
-        // define keys
+        //-----------------------------------------------------------------------------------------
+        //  UI
+        //-----------------------------------------------------------------------------------------
+        this.timer = this.add.text(game.config.width/2, 20, Math.floor(this.time.now/1000), timerConfig).setOrigin(0.5).setDepth(2);
+        this.Q = this.add.text(20, 20, 'Q', letterConfig).setDepth(2);
+        this.W = this.add.text(this.Q.x + 45, 20, 'W', letterConfig).setDepth(2);
+        this.E = this.add.text(this.Q.x + 45*2, 20, 'E', letterConfig).setDepth(2);
+        this.R = this.add.text(this.Q.x + 45*3, 20, 'R', letterConfig).setDepth(2);
+        this.Q.setBackgroundColor(redHex);
+        this.W.setBackgroundColor(greenHex);
+        this.E.setBackgroundColor(blueHex);
+        this.R.setBackgroundColor(yellowHex);
+        //letters and boxes for A-S-D-F
+        this.A = this.add.text(45, 65, 'A', letterConfig).setDepth(2);
+        this.S = this.add.text(this.A.x + 45, 65, 'S', letterConfig).setDepth(2);
+        this.D = this.add.text(this.A.x + 45*2, 65, 'D', letterConfig).setDepth(2);
+        this.F = this.add.text(this.A.x + 45*3, 65, 'F', letterConfig).setDepth(2);
+        this.A.setBackgroundColor(redHex);
+        this.S.setBackgroundColor(greenHex);
+        this.D.setBackgroundColor(blueHex);
+        this.F.setBackgroundColor(yellowHex);
+        this.scorePlayer = this.add.text(this.R.x + 65, 20, this.score, scoreConfig);
+        //-----------------------------------------------------------------------------------------
+        //  SETUP VARS
+        //-----------------------------------------------------------------------------------------
+        this.color = lightHex;
+        this.speed = -250;
+        this.spawnTimer;
+        this.time.now = 0;
+        //-----------------------------------------------------------------------------------------
+        //  KEYS
+        //-----------------------------------------------------------------------------------------
         keyESC = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ESC);
         keyUP = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP);
         keyDOWN = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN);
@@ -35,26 +73,19 @@ class Play extends Phaser.Scene {
         keyS = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S);
         keyD = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D);
         keyF = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
-        // add obj class
-        //this. = new (this, 598, 690, '').setOrigin(0.5, 0);
         // animation config
         // this.anims.create({
         //     key: '',
         //     frames: this.anims.generateFrameNumbers('', { start: 0, end: 9, first: 0}),
         //     frameRate: 60
         // });
-        // GAME OVER flag
-        this.gameOver = false;
-        scoreConfig.fixedWidth = 0;
-        this.scoreDisplay = this.add.text(20, 20, this.score, scoreConfig);
-        // this.redGroup = new Group(this.physics.world, this);
-        // this.greenGroup = new Group(this.physics.world, this);
-        // this.blueGroup = new Group(this.physics.world, this);
-        // this.yellowGroup = new Group(this.physics.world, this);
+        //-----------------------------------------------------------------------------------------
+        //  BLOCK GROUPS
+        //-----------------------------------------------------------------------------------------
         this.groupConfig = {
             collideWorldBounds: false,
             immovable: true,
-            velocityX: -10
+            velocityX: -250
         }
         this.redGroup = this.physics.add.group(this.groupConfig);
         this.greenGroup = this.physics.add.group(this.groupConfig);
@@ -64,27 +95,43 @@ class Play extends Phaser.Scene {
         this.physics.add.collider(this.greenGroup);
         this.physics.add.collider(this.blueGroup);
         this.physics.add.collider(this.yellowGroup);
-        this.redGroup.add(new Block(this, 600, 300, 20, 100, greenHex), true);
-        this.add.rectangle(600, 300, 20, 100, greenHex);
-        //initalize player
+        //-----------------------------------------------------------------------------------------
+        //  SPAWN
+        //-----------------------------------------------------------------------------------------
         this.player = new Player(this, game.config.width/3, game.config.height/2, 'playerSprite');
+        this.spawn();
+        this.spawnTimer = this.time.addEvent({
+            delay: this.blockER.spawnDelay,
+            callback: this.spawn,
+            callbackScope: this,
+            loop: true
+        });
     }
     update() {
+        this.timer.text = Math.floor(this.time.now/1000);
+        // this.background.tilePositionX += 5;
         // check key input for restart
         if (this.gameOver) {               
-            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', scoreConfig).setOrigin(0.5);
-            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (ESC) to Restart or ← for Menu', scoreConfig).setOrigin(0.5);
+            this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', menuConfig).setOrigin(0.5).setDepth(2);
+            this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (ESC) to Restart or ← for Menu', menuConfig).setOrigin(0.5).setDepth(2);
             if (Phaser.Input.Keyboard.JustDown(keyLEFT)) {
                 this.scene.start("menuScene");
-            }
-            if (Phaser.Input.Keyboard.JustDown(keyESC)) {
-                this.scene.restart();
             }
             //do death animation
             this.player.setAlpha(0);
         }
+        if (Phaser.Input.Keyboard.JustDown(keyESC)) {
+            this.scene.restart();
+        }
+        this.blockSpawner();
+        this.groupConfig.velocityX = this.speed;
+        this.redGroup.setVelocityX(this.speed);
+        this.greenGroup.setVelocityX(this.speed);
+        this.blueGroup.setVelocityX(this.speed);
+        this.yellowGroup.setVelocityX(this.speed);
         this.handleKeys();
         this.checkCollision();
+        this.checkBlocks();
         this.player.update();
     }
     handleKeys()
@@ -120,33 +167,98 @@ class Play extends Phaser.Scene {
     }
     checkCollision() {
         //check collisions
-        if(this.color != redHex)
+        if(!this.gameOver)
         {
-            this.physics.world.collide(this.player, this.redGroup, (Player, Block) =>
+            //red
+            if(this.color != redHex)
             {
-                this.gameOver = true;
+                this.physics.world.collide(this.player, this.redGroup, () => {this.gameOver = true});
+            }
+            else
+            {
+                this.physics.world.overlap(this.player, this.redGroup, () => {this.scorePass()});
+            }
+            //green
+            if(this.color != greenHex)
+            {
+                this.physics.world.collide(this.player, this.greenGroup, () => {this.gameOver = true});
+            }
+            else
+            {
+                this.physics.world.overlap(this.player, this.greenGroup, () => {this.scorePass()});
+            }
+            //blue
+            if(this.color != blueHex)
+            {
+                this.physics.world.collide(this.player, this.blueGroup, () => {this.gameOver = true});
+            }
+            else
+            {
+                this.physics.world.overlap(this.player, this.blueGroup, () => {this.scorePass()});
+            }
+            //yellow
+            if(this.color != yellowHex)
+            {
+                this.physics.world.collide(this.player, this.yellowGroup, () => {this.gameOver = true});
+            }
+            else
+            {
+                this.physics.world.overlap(this.player, this.yellowGroup, () => {this.scorePass()});
+            }
+        }
+    }
+    scorePass() {
+        this.scorePlayer.text = this.score + 10;
+        let text = this.add.text(this.scorePlayer.x + this.scorePlayer.width + 10, this.scorePlayer.y, "+10!", scoreConfig);
+        text.fontSize = '8px';
+        this.tweens.add({
+            targets: text,
+            alpha: 0,
+            duration: 1000, // duration in milliseconds
+            ease: 'Linear',
+            onComplete: () => { text.destroy() } // when the tween is complete
+        });
+    }
+    checkBlocks() {
+        this.physics.world.collide(this.redGroup, [this.greenGroup, this.blueGroup, this.yellowGroup], (block, blocks) => {block.x += (66); console.log("changed");});
+        this.physics.world.collide(this.greenGroup, [this.blueGroup, this.yellowGroup], (block, blocks) => {block.x += (66); console.log("changed");});
+        this.physics.world.collide(this.blueGroup, [this.yellowGroup], (block, blocks) => {block.x += (66); console.log("changed");});
+    }
+    blockSpawner() {
+        if(Math.floor(this.time.now/1000) > this.blockER.timeGate)
+        {
+            if(this.blockER.spawnDelay > 2000)
+                this.blockER.spawnDelay -= 500;
+            this.blockER.timeGate += 10;
+            if(this.speed < 700)
+                this.speed -= 75;
+            this.time.addEvent({
+                delay: this.blockER.spawnDelay,
+                callback: this.spawn,
+                callbackScope: this,
+                loop: true
             });
         }
-        if(this.color != greenHex)
+    }
+    spawn() {
+        let rC, rH;
+        rC = Math.floor(Math.random() * 4) + 1;
+        rH = (Math.random() * this.validRange.max) + this.validRange.min;
+        if(rC == 1)
         {
-            this.physics.world.collide(this.player, this.greenGroup, (Player, Block) =>
-            {
-                this.gameOver = true;
-            });
+            this.redGroup.add(new Block(this, game.config.width + 60, rH, 20, 200, redFILL), true);
         }
-        if(this.color != blueHex)
+        if(rC == 2)
         {
-            this.physics.world.collide(this.player, this.blueGroup, (Player, Block) =>
-            {
-                this.gameOver = true;
-            });
+            this.greenGroup.add(new Block(this, game.config.width + 60, rH, 20, 200, greenFILL), true);
         }
-        if(this.color != yellowHex)
+        if(rC == 3)
         {
-            this.physics.world.collide(this.player, this.yellowGroup, (Player, Block) =>
-            {
-                this.gameOver = true;
-            });
+            this.blueGroup.add(new Block(this, game.config.width + 60, rH, 20, 200, blueFILL), true);
+        }
+        if(rC == 4)
+        {
+            this.yellowGroup.add(new Block(this, game.config.width + 60, rH, 20, 200, yellowFILL), true);
         }
     }
 }

@@ -14,7 +14,7 @@ let config = {
     physics: {
         default: 'arcade',
         arcade: {
-            debug: true,
+            //debug: true,
             gravity: {
                 x: 0,
                 y: 0
@@ -102,3 +102,9 @@ let blueHex = '#4B66BB';
 let yellowHex = '#FFE028';
 let lightHex = '#CECECE';
 let darkHex = '#3F3F3F';
+let redFILL = 0xFF422E;
+let greenFILL = 0x6A9A3B;
+let blueFILL = 0x4B66BB;
+let yellowFILL = 0xFFE028;
+let lightFILL = 0xCECECE;
+let darkFILL = 0x3F3F3F;
