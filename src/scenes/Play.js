@@ -1,18 +1,6 @@
 class Play extends Phaser.Scene {
     constructor() {
         super("playScene");
-        this.gameOver = false;
-        this.blockER = {
-            blockNumber: 0,
-            spawnDelay: 5000,
-            timeGate: 0,
-            lastSpawn: 0
-        }
-        this.validRange = {
-            min: 200,
-            max: (game.config.height - 200)
-        }
-        this.score = 0;
     }
     preload() {
         // load images/tile sprites
@@ -26,6 +14,7 @@ class Play extends Phaser.Scene {
         //this.load.spritesheet('', './assets/.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
     }
     create() {
+        this.game.loop.resetTime();
         //-----------------------------------------------------------------------------------------
         //  UI
         //-----------------------------------------------------------------------------------------
@@ -47,14 +36,29 @@ class Play extends Phaser.Scene {
         this.S.setBackgroundColor(greenHex);
         this.D.setBackgroundColor(blueHex);
         this.F.setBackgroundColor(yellowHex);
-        this.scorePlayer = this.add.text(this.R.x + 65, 20, this.score, scoreConfig);
+        this.scorePlayer = this.add.text(this.R.x + 45, 15, this.score, scoreConfig);
         //-----------------------------------------------------------------------------------------
         //  SETUP VARS
         //-----------------------------------------------------------------------------------------
+        this.gameOver = false;
         this.color = lightHex;
         this.speed = -250;
+        this.blockER = {
+            blockNumber: 0,
+            spawnDelay: 5000,
+            timeGate: 0,
+        }
+        this.validRange = {
+            min: 200,
+            max: (game.config.height - 200)
+        }
+        this.score = 0;
         this.spawnTimer;
         this.time.now = 0;
+        this.redOver = false;
+        this.greenOver = false;
+        this.blueOver = false;
+        this.yellowOver = false;
         //-----------------------------------------------------------------------------------------
         //  KEYS
         //-----------------------------------------------------------------------------------------
@@ -124,11 +128,6 @@ class Play extends Phaser.Scene {
             this.scene.restart();
         }
         this.blockSpawner();
-        this.groupConfig.velocityX = this.speed;
-        this.redGroup.setVelocityX(this.speed);
-        this.greenGroup.setVelocityX(this.speed);
-        this.blueGroup.setVelocityX(this.speed);
-        this.yellowGroup.setVelocityX(this.speed);
         this.handleKeys();
         this.checkCollision();
         this.checkBlocks();
@@ -136,30 +135,33 @@ class Play extends Phaser.Scene {
     }
     handleKeys()
     {
-        // fire button
         if(Phaser.Input.Keyboard.JustDown(keyQ) || Phaser.Input.Keyboard.JustDown(keyA)) {
             //red
             this.color = redHex;
             this.changBackground();
             this.player.setColor(this.color);
+            this.redGroup.getChildren().strokeAplha = 0.5;
         }
         if(Phaser.Input.Keyboard.JustDown(keyW) || Phaser.Input.Keyboard.JustDown(keyS)) {
             //green
             this.color = greenHex;
             this.changBackground();
             this.player.setColor(this.color);
+            this.greenGroup.getChildren().strokeAplha = 0.5;
         }
         if(Phaser.Input.Keyboard.JustDown(keyE) || Phaser.Input.Keyboard.JustDown(keyD)) {
             //blue
             this.color = blueHex;
             this.changBackground();
             this.player.setColor(this.color);
+            this.blueGroup.getChildren().strokeAplha = 0.5;
         }
         if(Phaser.Input.Keyboard.JustDown(keyR) || Phaser.Input.Keyboard.JustDown(keyF)) {
             //yellow
             this.color = yellowHex;
             this.changBackground();
             this.player.setColor(this.color);
+            this.yellowGroup.getChildren().strokeAplha = 0.5;
         }
     }
     changBackground() {
@@ -176,7 +178,16 @@ class Play extends Phaser.Scene {
             }
             else
             {
-                this.physics.world.overlap(this.player, this.redGroup, () => {this.scorePass()});
+                if(this.physics.world.overlap(this.player, this.redGroup))
+                {
+                    if(!this.redOver)
+                        this.scorePass();
+                    this.redOver = true;
+                }
+                else
+                {
+                    this.redOver = false;
+                }
             }
             //green
             if(this.color != greenHex)
@@ -185,7 +196,16 @@ class Play extends Phaser.Scene {
             }
             else
             {
-                this.physics.world.overlap(this.player, this.greenGroup, () => {this.scorePass()});
+                if(this.physics.world.overlap(this.player, this.greenGroup))
+                {
+                    if(!this.greenOver)
+                        this.scorePass();
+                    this.greenOver = true;
+                }
+                else
+                {
+                    this.greenOver = false;
+                }
             }
             //blue
             if(this.color != blueHex)
@@ -194,7 +214,16 @@ class Play extends Phaser.Scene {
             }
             else
             {
-                this.physics.world.overlap(this.player, this.blueGroup, () => {this.scorePass()});
+                if(this.physics.world.overlap(this.player, this.blueGroup))
+                {
+                    if(!this.blueOver)
+                        this.scorePass();
+                    this.blueOver = true;
+                }
+                else
+                {
+                    this.blueOver = false;
+                }
             }
             //yellow
             if(this.color != yellowHex)
@@ -203,14 +232,24 @@ class Play extends Phaser.Scene {
             }
             else
             {
-                this.physics.world.overlap(this.player, this.yellowGroup, () => {this.scorePass()});
+                if(this.physics.world.overlap(this.player, this.yellowGroup))
+                {
+                    if(!this.yellowOver)
+                        this.scorePass();
+                    this.yellowOver = true;
+                }
+                else
+                {
+                    this.yellowOver = false;
+                }
             }
         }
     }
     scorePass() {
-        this.scorePlayer.text = this.score + 10;
-        let text = this.add.text(this.scorePlayer.x + this.scorePlayer.width + 10, this.scorePlayer.y, "+10!", scoreConfig);
-        text.fontSize = '8px';
+        this.score += 10;
+        this.scorePlayer.setText(this.score);
+        let text = this.add.text(this.scorePlayer.x + 40, this.scorePlayer.y, "+10!", scoreConfig);
+        text.setFontSize(17);
         this.tweens.add({
             targets: text,
             alpha: 0,
@@ -220,9 +259,14 @@ class Play extends Phaser.Scene {
         });
     }
     checkBlocks() {
-        this.physics.world.collide(this.redGroup, [this.greenGroup, this.blueGroup, this.yellowGroup], (block, blocks) => {block.x += (66); console.log("changed");});
-        this.physics.world.collide(this.greenGroup, [this.blueGroup, this.yellowGroup], (block, blocks) => {block.x += (66); console.log("changed");});
-        this.physics.world.collide(this.blueGroup, [this.yellowGroup], (block, blocks) => {block.x += (66); console.log("changed");});
+        this.physics.world.overlap(this.redGroup, [this.greenGroup, this.blueGroup, this.yellowGroup], (block, blocks) => {block.x += (66)});
+        this.physics.world.overlap(this.greenGroup, [this.blueGroup, this.yellowGroup], (block, blocks) => {block.x += (66)});
+        this.physics.world.overlap(this.blueGroup, [this.yellowGroup], (block, blocks) => {block.x += (66)});
+        this.groupConfig.velocityX = this.speed;
+        this.redGroup.setVelocityX(this.speed);
+        this.greenGroup.setVelocityX(this.speed);
+        this.blueGroup.setVelocityX(this.speed);
+        this.yellowGroup.setVelocityX(this.speed);
     }
     blockSpawner() {
         if(Math.floor(this.time.now/1000) > this.blockER.timeGate)
@@ -230,7 +274,7 @@ class Play extends Phaser.Scene {
             if(this.blockER.spawnDelay > 2000)
                 this.blockER.spawnDelay -= 500;
             this.blockER.timeGate += 10;
-            if(this.speed < 700)
+            if(this.speed > -700)
                 this.speed -= 75;
             this.time.addEvent({
                 delay: this.blockER.spawnDelay,
