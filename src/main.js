@@ -1,3 +1,23 @@
+//------------------------------------------------------------------------------------------------------------------
+//  Lance Dennison
+//  RGBY Runner
+//  Hours spent: ~25
+//  CTJ: I wanted to make a endless runner that had simple and elegant
+//          graphics that started with the normal "avoid the barriers"
+//          movement mechanics, but when you use QWER/ASDF to change
+//          the background color, you are able to pass through the
+//          blocks (I initially wanted them just blend in with the
+//          background and disappear with no outline on the blocks but
+//          it was too hard to play) and get points for doing so
+//          (to add the points I had to distinguish between collision & overlap)
+//          (I had to brute force a Play scene timer cuz scene.reset was not resetting the time)
+//          (I also think I got the movement feeling pretty nice)
+//
+//  I believe that I was able to create a aesthetic that stands out apart from other runners
+//  while staying within my own abilities as an artist
+//
+//  SFX made in ChipTone
+//------------------------------------------------------------------------------------------------------------------
 let config = {
     type: Phaser.CANVAS,
     width: 1280,
