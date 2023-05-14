@@ -9,16 +9,20 @@ class Play extends Phaser.Scene {
         this.load.image('greenSprite', './assets/player/playerNOTgreen.png');
         this.load.image('blueSprite', './assets/player/playerNOTblue.png');
         this.load.image('yellowSprite', './assets/player/playerNOTyellow.png');
-        this.load.image('looping', './assets/rows.png');
-        // load spritesheet
-        //this.load.spritesheet('', './assets/.png', {frameWidth: 64, frameHeight: 32, startFrame: 0, endFrame: 9});
+        this.load.image('looping', './assets/sounds/rows.png');
+        this.load.audio('scoreSfx', './assets/sounds/score.wav');
+        this.load.audio('loseSfx', './assets/sounds/lose.wav');
+        this.load.audio('redSfx', './assets/sounds/red.wav');
+        this.load.audio('greenSfx', './assets/sounds/green.wav');
+        this.load.audio('blueSfx', './assets/sounds/blue.wav');
+        this.load.audio('yellowSfx', './assets/sounds/yellow.wav');
     }
     create() {
-        this.game.loop.resetTime();
+        this.sceneTime = this.time.now;
         //-----------------------------------------------------------------------------------------
         //  UI
         //-----------------------------------------------------------------------------------------
-        this.timer = this.add.text(game.config.width/2, 20, Math.floor(this.time.now/1000), timerConfig).setOrigin(0.5).setDepth(2);
+        this.timer = this.add.text(game.config.width/2, 20, Math.floor((this.time.now-this.sceneTime)/1000), timerConfig).setOrigin(0.5).setDepth(2);
         this.Q = this.add.text(20, 20, 'Q', letterConfig).setDepth(2);
         this.W = this.add.text(this.Q.x + 45, 20, 'W', letterConfig).setDepth(2);
         this.E = this.add.text(this.Q.x + 45*2, 20, 'E', letterConfig).setDepth(2);
@@ -36,7 +40,8 @@ class Play extends Phaser.Scene {
         this.S.setBackgroundColor(greenHex);
         this.D.setBackgroundColor(blueHex);
         this.F.setBackgroundColor(yellowHex);
-        this.scorePlayer = this.add.text(this.R.x + 45, 15, this.score, scoreConfig);
+        this.score = 0;
+        this.scorePlayer = this.add.text(this.R.x + 30, 15, this.score, scoreConfig)
         //-----------------------------------------------------------------------------------------
         //  SETUP VARS
         //-----------------------------------------------------------------------------------------
@@ -52,13 +57,12 @@ class Play extends Phaser.Scene {
             min: 200,
             max: (game.config.height - 200)
         }
-        this.score = 0;
         this.spawnTimer;
-        this.time.now = 0;
         this.redOver = false;
         this.greenOver = false;
         this.blueOver = false;
         this.yellowOver = false;
+        this.playedSFX = false;
         //-----------------------------------------------------------------------------------------
         //  KEYS
         //-----------------------------------------------------------------------------------------
@@ -112,10 +116,10 @@ class Play extends Phaser.Scene {
         });
     }
     update() {
-        this.timer.text = Math.floor(this.time.now/1000);
+        this.timer.text = Math.floor((this.time.now-this.sceneTime)/1000);
         // this.background.tilePositionX += 5;
         // check key input for restart
-        if (this.gameOver) {               
+        if (this.gameOver) {       
             this.add.text(game.config.width/2, game.config.height/2, 'GAME OVER', menuConfig).setOrigin(0.5).setDepth(2);
             this.add.text(game.config.width/2, game.config.height/2 + 64, 'Press (ESC) to Restart or ← for Menu', menuConfig).setOrigin(0.5).setDepth(2);
             if (Phaser.Input.Keyboard.JustDown(keyLEFT)) {
@@ -123,6 +127,11 @@ class Play extends Phaser.Scene {
             }
             //do death animation
             this.player.setAlpha(0);
+            if(!this.playedSFX)
+            {
+                this.sound.play('loseSfx');
+                this.playedSFX = true;
+            }
         }
         if (Phaser.Input.Keyboard.JustDown(keyESC)) {
             this.scene.restart();
@@ -141,6 +150,7 @@ class Play extends Phaser.Scene {
             this.changBackground();
             this.player.setColor(this.color);
             this.redGroup.getChildren().strokeAplha = 0.5;
+            this.sound.play('redSfx');
         }
         if(Phaser.Input.Keyboard.JustDown(keyW) || Phaser.Input.Keyboard.JustDown(keyS)) {
             //green
@@ -148,6 +158,7 @@ class Play extends Phaser.Scene {
             this.changBackground();
             this.player.setColor(this.color);
             this.greenGroup.getChildren().strokeAplha = 0.5;
+            this.sound.play('greenSfx');
         }
         if(Phaser.Input.Keyboard.JustDown(keyE) || Phaser.Input.Keyboard.JustDown(keyD)) {
             //blue
@@ -155,6 +166,7 @@ class Play extends Phaser.Scene {
             this.changBackground();
             this.player.setColor(this.color);
             this.blueGroup.getChildren().strokeAplha = 0.5;
+            this.sound.play('blueSfx');
         }
         if(Phaser.Input.Keyboard.JustDown(keyR) || Phaser.Input.Keyboard.JustDown(keyF)) {
             //yellow
@@ -162,6 +174,7 @@ class Play extends Phaser.Scene {
             this.changBackground();
             this.player.setColor(this.color);
             this.yellowGroup.getChildren().strokeAplha = 0.5;
+            this.sound.play('yellowSfx');
         }
     }
     changBackground() {
@@ -248,7 +261,7 @@ class Play extends Phaser.Scene {
     scorePass() {
         this.score += 10;
         this.scorePlayer.setText(this.score);
-        let text = this.add.text(this.scorePlayer.x + 40, this.scorePlayer.y, "+10!", scoreConfig);
+        let text = this.add.text(this.scorePlayer.x + 40, this.scorePlayer.y + 5, "+10!", scoreConfig);
         text.setFontSize(17);
         this.tweens.add({
             targets: text,
@@ -257,6 +270,7 @@ class Play extends Phaser.Scene {
             ease: 'Linear',
             onComplete: () => { text.destroy() } // when the tween is complete
         });
+        this.sound.play('scoreSfx');
     }
     checkBlocks() {
         this.physics.world.overlap(this.redGroup, [this.greenGroup, this.blueGroup, this.yellowGroup], (block, blocks) => {block.x += (66)});
@@ -269,7 +283,7 @@ class Play extends Phaser.Scene {
         this.yellowGroup.setVelocityX(this.speed);
     }
     blockSpawner() {
-        if(Math.floor(this.time.now/1000) > this.blockER.timeGate)
+        if(Math.floor((this.time.now-this.sceneTime)/1000) > this.blockER.timeGate)
         {
             if(this.blockER.spawnDelay > 2000)
                 this.blockER.spawnDelay -= 500;

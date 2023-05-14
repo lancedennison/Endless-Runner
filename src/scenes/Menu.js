@@ -4,6 +4,10 @@ class Menu extends Phaser.Scene {
         this.color = lightHex;
     }
     preload() {
+        this.load.audio('redSfx', './assets/sounds/red.wav');
+        this.load.audio('greenSfx', './assets/sounds/green.wav');
+        this.load.audio('blueSfx', './assets/sounds/blue.wav');
+        this.load.audio('yellowSfx', './assets/sounds/yellow.wav');
     }
     create() {
         // show menu text
@@ -59,21 +63,25 @@ class Menu extends Phaser.Scene {
             //red
             this.color = redHex;
             this.changBackground();
+            this.sound.play('redSfx');
         }
         if(Phaser.Input.Keyboard.JustDown(keyW) || Phaser.Input.Keyboard.JustDown(keyS)) {
             //green
             this.color = greenHex;
             this.changBackground();
+            this.sound.play('greenSfx');
         }
         if(Phaser.Input.Keyboard.JustDown(keyE) || Phaser.Input.Keyboard.JustDown(keyD)) {
             //blue
             this.color = blueHex;
             this.changBackground();
+            this.sound.play('blueSfx');
         }
         if(Phaser.Input.Keyboard.JustDown(keyR) || Phaser.Input.Keyboard.JustDown(keyF)) {
             //yellow
             this.color = yellowHex;
             this.changBackground();
+            this.sound.play('yellowSfx');
         }
     }
     changBackground() {
