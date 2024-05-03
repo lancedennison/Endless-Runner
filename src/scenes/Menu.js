@@ -14,7 +14,7 @@ class Menu extends Phaser.Scene {
         this.add.text(game.config.width/2, 30, 'Made by Lance Dennison', menuConfig).setOrigin(0.5);
         this.add.text(game.config.width/2, game.config.height - 30, '!!!FLASHING COLORS WARNING!!!', menuConfig).setOrigin(0.5).setColor(darkHex);
         this.add.text(game.config.width/2, game.config.height/2 - 75, 'RGBY Runner', menuConfig).setOrigin(0.5).setFontSize(80);
-        this.add.text(game.config.width/2, game.config.height/2 - 25, 'Use ←↑↓→ to move', menuConfig).setOrigin(0.5);
+        this.add.text(game.config.width/2 - 100, game.config.height/2 - 25, 'Use ←↑↓→ to move', menuConfig).setOrigin(0.5);
         //letters and boxes for Q-W-E-R
         this.Q = this.add.text(QWER.x, QWER.y, 'Q', letterConfig).setOrigin(0.5);
         this.W = this.add.text(QWER.x + space, QWER.y, 'W', letterConfig).setOrigin(0.5);
@@ -38,11 +38,13 @@ class Menu extends Phaser.Scene {
         this.F.setBackgroundColor(yellowHex);
         //-----------------------------------------------------------------------------------------------------------------------------
         this.add.text(this.F.x + 10, ASDF.y, '← to change color', menuConfig).setOrigin(0, 0.5);
-        this.add.text(this.F.x, ASDF.y + 40, 'Press → to start', menuConfig).setOrigin(0.5);
+        this.add.text(this.F.x + 25, ASDF.y + 40, 'Press ← for tutorial', menuConfig).setOrigin(0.5);
+        this.add.text(this.F.x + 25, ASDF.y + 70, 'Press → to start', menuConfig).setOrigin(0.5);
         //-----------------------------------------------------------------------------------------------------------------------------
         //done with letters
         // define keys
         keyRIGHT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT);
+        keyLEFT = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT);
         //CONTROLS 1
         keyQ = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Q);
         keyW = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W);
@@ -58,7 +60,12 @@ class Menu extends Phaser.Scene {
         if(Phaser.Input.Keyboard.JustDown(keyRIGHT))
         {
             this.scene.start("playScene");
-        }     
+        }
+        if(Phaser.Input.Keyboard.JustDown(keyLEFT))
+        {
+            this.scene.start("tutScene");
+        }
+        //control changing colors
         if(Phaser.Input.Keyboard.JustDown(keyQ) || Phaser.Input.Keyboard.JustDown(keyA)) {
             //red
             this.color = redHex;
